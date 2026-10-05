@@ -1,0 +1,36 @@
+name: Fork CI
+
+on:
+    pull_request:
+        branches: [work]
+    push:
+        branches: [work]
+
+jobs:
+    verify:
+        if: github.repository == 'leejongyoung/egovframe-vscode-initializr'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  lfs: true
+                  persist-credentials: false
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: npm
+                  cache-dependency-path: |
+                      package-lock.json
+                      webview-ui/package-lock.json
+            - name: Install extension dependencies
+              run: npm ci
+            - name: Install Webview dependencies
+              run: npm ci --prefix webview-ui
+            - name: Test extension
+              run: npm test
+            - name: Test Webview
+              run: npm test --prefix webview-ui
+            - name: Build production bundle
+              run: npm run package
